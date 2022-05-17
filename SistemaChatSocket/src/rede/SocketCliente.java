@@ -7,40 +7,49 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class SocketCliente {
-    private static String servidorIP; // NÃO ESCREVER IP DIRETO AQUI - Pegue em forma de input pra não vazar no repositório :D
-    private static int porta = 20100;
+    private String servidorIP; // NÃO ESCREVER IP DIRETO AQUI - Pegue em forma de input pra não vazar no repositório :D
+    private int porta = 20100;
+    private BufferedReader in;
+    private PrintWriter out;
     
-    public static void main(String[] args) {
-        try {
-            System.out.println("Digite o IP do servidor: ");
-            BufferedReader inUsuario = new BufferedReader(new InputStreamReader(System.in)); // Obter dados do usuário para enviar
-            servidorIP = inUsuario.readLine();
-            
-            System.out.println("Tentando conectar ao servidor (" + servidorIP + ")...");
-            Socket socket = new Socket(servidorIP, porta);
-            
-            System.out.println("Conectou-se ao servidor.");
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); // Leitor de input recebido do socket, instanciado de um canal de entrada que é instanciado baseado no canal de fluxo de entrada de dados do soquete.
-            PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream())); // Emissor de output enviado para o socket, instanciado de um canal de saída que é instanciado baseado no canal de fluxo de saída de dados do soquete.
-            
-            System.out.println("Digite seu nickname: ");
-            out.println(inUsuario.readLine());
-            //out.flush(); // Adiar o flush para o usuário receber a mensagem de conexão
-            
-            Thread threadRecebidor = new Thread(new LeitorDeSoquete(in));
-            Thread threadEmissor = new Thread(new EscritorDeSoquete(out));
-            
-            threadRecebidor.start();
-            threadEmissor.start();
-            
-            out.flush();
-        } catch (Exception e) {
-            System.out.println("ERRO (SocketClienteMelhor): " + e.getMessage());
-        }
+    public void conectarAoServidor(String servidorIP, String nome) throws Exception{
+        this.servidorIP = servidorIP;
         
+        System.out.println("Digite o IP do servidor: ");
+        //BufferedReader inUsuario = new BufferedReader(new InputStreamReader(System.in)); // Obter dados do usuário para enviar
+        //servidorIP = inUsuario.readLine();
+            
+        System.out.println("Tentando conectar ao servidor (" + servidorIP + ")...");
+        Socket socket = new Socket(servidorIP, porta);
+            
+        System.out.println("Conectou-se ao servidor.");
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream())); // Leitor de input recebido do socket, instanciado de um canal de entrada que é instanciado baseado no canal de fluxo de entrada de dados do soquete.
+        out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream())); // Emissor de output enviado para o socket, instanciado de um canal de saída que é instanciado baseado no canal de fluxo de saída de dados do soquete.
+            
+        //System.out.println("Digite seu nickname: ");
+        //out.println(inUsuario.readLine());
+        out.println(nome);
+        //out.flush(); // Adiar o flush para o usuário receber a mensagem de conexão
+            
+        //Thread threadRecebidor = new Thread(new LeitorDeSoquete(in));
+        //Thread threadEmissor = new Thread(new EscritorDeSoquete(out));
+         
+        //threadRecebidor.start();
+        //threadEmissor.start();
+            
+        out.flush();        
+    }
+    
+    public BufferedReader RetornarCanalDeEntrada() {
+        return in;
+    }
+     
+    public PrintWriter RetornarCanalDeSaida() {
+        return out;
     }
 }
 
+/*
 class LeitorDeSoquete extends Thread {
     BufferedReader recebidor;
     
@@ -84,3 +93,4 @@ class EscritorDeSoquete extends Thread {
         }
     }
 }
+*/

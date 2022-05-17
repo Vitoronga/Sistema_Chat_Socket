@@ -10,41 +10,47 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SocketServidor {
-    private static int porta = 20100;
+    private int porta = 20100;
     static List<ThreadCliente> threadsClientes;
     
-    public static void main(String[] args) {
+    private ServerSocket socketServidor;
+    
+    public void iniciarServidor() throws Exception {
         threadsClientes = new ArrayList();
         
-        try {
-            System.out.println("Criando servidor...");
-            ServerSocket socketServidor = new ServerSocket(porta);
+        System.out.println("Criando servidor...");
+        socketServidor = new ServerSocket(porta);
             
-            System.out.println("Servidor criado, iniciando seu escritor");
-            EscritorDeSoqueteServer escritor = new EscritorDeSoqueteServer();            
-            Thread threadEscritor = new Thread(escritor);
-            threadEscritor.start();
+        System.out.println("Servidor criado, iniciando seu escritor");
+        EscritorDeSoqueteServer escritor = new EscritorDeSoqueteServer();            
+        Thread threadEscritor = new Thread(escritor);
+        threadEscritor.start();
             
-            while (true) {
-                System.out.println("Escutando porta " + porta + " esperando clientes.");
-                ThreadCliente threadCliente = new ThreadCliente(socketServidor.accept());
-                
-                System.out.println("Cliente conectando...");
-                
-                if (threadCliente == null) { 
-                    System.out.println("Thread de cliente não foi criada corretamente.");
-                    continue;
-                }
-                
-                threadsClientes.add(threadCliente);
-                threadCliente.start();
-                
-                //System.out.println("Cliente conectou-se.");
+        while (true) {
+            System.out.println("Escutando porta " + porta + " esperando clientes.");
+            ThreadCliente threadCliente = new ThreadCliente(socketServidor.accept());
+              
+            System.out.println("Cliente conectando...");
+               
+            if (threadCliente == null) { 
+                System.out.println("Thread de cliente não foi criada corretamente.");
+                continue;
             }
-        } catch (Exception e) {
-            System.out.println("ERRO SERVIDOR: " + e.getMessage());
+                
+            threadsClientes.add(threadCliente);
+            threadCliente.start();
+                
+            //System.out.println("Cliente conectou-se.");
         }
-        
+               
+    }
+    
+    public void encerrarServidor() {
+        try {
+            socketServidor.close();
+        } catch (Exception e) {
+            System.out.println("ERRO (Fechar socket do servidor): " + e.getMessage());
+        }
     }
 }
 
@@ -69,13 +75,10 @@ class ThreadCliente extends Thread{
         System.out.println("(Construtor) Thread cliente criada para " + nome);
     }
     
-    private void obterNome() throws Exception{ 
-        this.nome = in.readLine(); // Recebe primeiramente o nome do usuário.
-    }
-    
     public void run() {
         try {
-            obterNome();
+            this.nome = in.readLine(); // Recebe primeiramente o nome do usuário.
+            
             System.out.println("Cliente (" + nome + ") configurado com sucesso\n" + nome + " conectou-se");
             EscritorDeSoqueteServer.emitirMensagem(nome + " conectou-se");
         } catch (Exception e) {
@@ -132,7 +135,7 @@ class EscritorDeSoqueteServer extends Thread {
             
             while (true) {
                 System.out.println("Digite sua mensagem:");
-                msg = "Servidor: " + in.readLine();
+                msg = "(SERVIDOR): " + in.readLine();
                 System.out.println(msg);
                 
                 emitirMensagem(msg);
