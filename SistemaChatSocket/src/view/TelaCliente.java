@@ -4,10 +4,10 @@
  * and open the template in the editor.
  */
 package view;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import javax.swing.ListModel;
+import model.Mensagem;
 import rede.SocketCliente;
 
 /**
@@ -15,26 +15,13 @@ import rede.SocketCliente;
  * @author vitor
  */
 public class TelaCliente extends javax.swing.JFrame {
-    TrataSocket socket;
+    TrataSocket trataSocket;
     
     /**
      * Creates new form TelaPrincipal
      */
     public TelaCliente() {
         initComponents();
-        
-        /*
-        PainelMensagem painelMsg = new PainelMensagem(jScrollPane2, "Teste");
-        
-        for (int i = 0; i < 3; i++) {
-            new PainelMensagem(jScrollPane2, "Teste");
-        }
-        
-        SocketCliente sc = new SocketCliente();
-        sc.conectarAoServidor(servidorIP);
-        */
-        
-        //adicionarMensagemAoChat("Teste"); // Funciona!
     }
 
     /**
@@ -52,9 +39,10 @@ public class TelaCliente extends javax.swing.JFrame {
         lbConexaoEndereco = new javax.swing.JLabel();
         tfConexaoNome = new javax.swing.JTextField();
         lbConexaoNome = new javax.swing.JLabel();
+        btDesconectar = new javax.swing.JButton();
         pnOnline = new javax.swing.JPanel();
         lbOnlineTitulo = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        spOnlinePainel = new javax.swing.JScrollPane();
         lsOnlineLista = new javax.swing.JList<>();
         tfInputMensagem = new javax.swing.JTextField();
         spChat = new javax.swing.JScrollPane();
@@ -63,6 +51,7 @@ public class TelaCliente extends javax.swing.JFrame {
         btInputEnviar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Environmental Awareness");
         setBackground(new java.awt.Color(102, 102, 102));
 
         pnConexao.setBackground(new java.awt.Color(255, 255, 255));
@@ -79,6 +68,13 @@ public class TelaCliente extends javax.swing.JFrame {
 
         lbConexaoNome.setText("Nome de usuário:");
 
+        btDesconectar.setText("Desconectar");
+        btDesconectar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btDesconectarActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout pnConexaoLayout = new javax.swing.GroupLayout(pnConexao);
         pnConexao.setLayout(pnConexaoLayout);
         pnConexaoLayout.setHorizontalGroup(
@@ -90,6 +86,8 @@ public class TelaCliente extends javax.swing.JFrame {
                 .addComponent(tfConexaoEndereco, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btConectar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btDesconectar)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(lbConexaoNome)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -105,7 +103,8 @@ public class TelaCliente extends javax.swing.JFrame {
                     .addComponent(tfConexaoEndereco, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lbConexaoEndereco)
                     .addComponent(tfConexaoNome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lbConexaoNome))
+                    .addComponent(lbConexaoNome)
+                    .addComponent(btDesconectar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -117,10 +116,10 @@ public class TelaCliente extends javax.swing.JFrame {
         lbOnlineTitulo.setText("ONLINE:");
         lbOnlineTitulo.setOpaque(true);
 
-        jScrollPane1.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        spOnlinePainel.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
 
         lsOnlineLista.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        jScrollPane1.setViewportView(lsOnlineLista);
+        spOnlinePainel.setViewportView(lsOnlineLista);
 
         javax.swing.GroupLayout pnOnlineLayout = new javax.swing.GroupLayout(pnOnline);
         pnOnline.setLayout(pnOnlineLayout);
@@ -129,7 +128,7 @@ public class TelaCliente extends javax.swing.JFrame {
             .addGroup(pnOnlineLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnOnlineLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(spOnlinePainel, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addComponent(lbOnlineTitulo, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -139,18 +138,19 @@ public class TelaCliente extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(lbOnlineTitulo)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
+                .addComponent(spOnlinePainel, javax.swing.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         tfInputMensagem.setToolTipText("");
 
+        spChat.setAutoscrolls(true);
         spChat.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
 
         lsChat.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         spChat.setViewportView(lsChat);
 
-        lbVersao.setText("v0.0.1");
+        lbVersao.setText("v0.3.1");
 
         btInputEnviar.setText("Enviar");
         btInputEnviar.addActionListener(new java.awt.event.ActionListener() {
@@ -195,7 +195,7 @@ public class TelaCliente extends javax.swing.JFrame {
                             .addComponent(tfInputMensagem)
                             .addComponent(btInputEnviar, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)))
                     .addComponent(pnOnline, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(lbVersao))
         );
 
@@ -207,8 +207,18 @@ public class TelaCliente extends javax.swing.JFrame {
     }//GEN-LAST:event_btConectarActionPerformed
 
     private void btInputEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btInputEnviarActionPerformed
-        socket.EscreverCanal(tfInputMensagem.getText());
+        String texto = tfInputMensagem.getText();
+        
+        // Não tentar enviar a mensagem se não houver conexão, ou o texto for vazio.
+        if (trataSocket == null || texto == "" || texto.length() == 0) return;
+        
+        trataSocket.escreverCanal("Mensagem", texto);
     }//GEN-LAST:event_btInputEnviarActionPerformed
+
+    private void btDesconectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btDesconectarActionPerformed
+        encerrarConexao();
+        //adicionarMensagemAoChat("*** Botão temporariamente desativado ***");
+    }//GEN-LAST:event_btDesconectarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -248,8 +258,8 @@ public class TelaCliente extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btConectar;
+    private javax.swing.JButton btDesconectar;
     private javax.swing.JButton btInputEnviar;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lbConexaoEndereco;
     private javax.swing.JLabel lbConexaoNome;
     private javax.swing.JLabel lbOnlineTitulo;
@@ -259,6 +269,7 @@ public class TelaCliente extends javax.swing.JFrame {
     private javax.swing.JPanel pnConexao;
     private javax.swing.JPanel pnOnline;
     private javax.swing.JScrollPane spChat;
+    private javax.swing.JScrollPane spOnlinePainel;
     private javax.swing.JTextField tfConexaoEndereco;
     private javax.swing.JTextField tfConexaoNome;
     private javax.swing.JTextField tfInputMensagem;
@@ -269,10 +280,21 @@ public class TelaCliente extends javax.swing.JFrame {
     public void adicionarMensagemAoChat(String mensagem) {
         // Gerar versão atualizada da lista
         ListModel lm = lsChat.getModel();
-        String[] novaLista = new String[lm.getSize() + 1];        
+        String[] novaLista;
         
-        for (int i = 0; i < lm.getSize(); i++) {
-            novaLista[i] = lm.getElementAt(i).toString();
+        // Recupera mensagens da lista antiga (o máximo possível)
+        if (lm.getSize() >= 30) {
+            novaLista = new String[lm.getSize()];        
+        
+            for (int i = 1; i < lm.getSize(); i++) {
+                novaLista[i-1] = lm.getElementAt(i).toString();
+            }
+        } else {
+            novaLista = new String[lm.getSize() + 1];        
+        
+            for (int i = 0; i < lm.getSize(); i++) {
+                novaLista[i] = lm.getElementAt(i).toString();
+            }
         }
         
         // Adicionar nova mensagem
@@ -281,20 +303,48 @@ public class TelaCliente extends javax.swing.JFrame {
         lsChat.setListData(novaLista);
     }
     
+    public void atualizarUsuariosOnline(String nomes) {
+        String[] nomesSeparados = nomes.split(",");        
+        lsOnlineLista.setListData(nomesSeparados);
+    }
+    
+
     // Conexão de rede
     private void criarConexao(String servidorIP, String nomeUsuario) {
-        TrataSocket ts = new TrataSocket(this, servidorIP, nomeUsuario);
-        ts.start();
+        System.out.println(nomeUsuario.length());
+        
+        if (nomeUsuario == "" || nomeUsuario == " " || nomeUsuario.length() < 3) {
+            String alerta = "* Nome de Usuário inválido (precisa de ao menos 3 caracteres).";
+            System.out.println(alerta);            
+            adicionarMensagemAoChat(alerta);
+            return;
+        }
+        
+        if (trataSocket != null) {
+            String alerta = "* Termine a conexão atual para começar uma nova.";
+            System.out.println(alerta);            
+            adicionarMensagemAoChat(alerta);
+            return;
+        }
+        
+        trataSocket = new TrataSocket(this, servidorIP, nomeUsuario);
+        trataSocket.start();
+    }
+    
+    private void encerrarConexao() {
+        if (trataSocket == null) return;
+        
+        trataSocket.encerrarConexao();
     }
 }
 
 class TrataSocket extends Thread {
     String servidorIP;
     String nomeUsuario;
-    SocketCliente socket;
+    SocketCliente socketCliente;
     TelaCliente tela;
-    BufferedReader in;
-    PrintWriter out;
+    ObjectInputStream in;
+    ObjectOutputStream out;
     
     public TrataSocket(TelaCliente tela, String ip) {
         this(tela, ip, "Usuario");
@@ -307,65 +357,95 @@ class TrataSocket extends Thread {
     }
     
     public void run() {
-        socket = new SocketCliente();
-        tela.socket = this;
+        socketCliente = new SocketCliente();
+        tela.trataSocket = this;
         
         boolean conectou = false;
         
-        for (int i = 0; i < 5; i++) {
-            try {
-                socket.conectarAoServidor(servidorIP, nomeUsuario);
-                conectou = true;
-            } catch (Exception e) {
-                System.out.println("ERRO (iniciarConexao): " + e.getMessage());
-            }
-            
-            if (conectou) {
-                in = socket.RetornarCanalDeEntrada();
-                out = socket.RetornarCanalDeSaida();
-                
-                // Primeiro emitir o nome de usuario (TRATADO PELO SocketCliente!!!)
-                //EscreverCanal(nomeUsuario);
-                //System.out.println("*** ATENÇÃO: (tire esse print) ARRUMAR PARTE DE CONFIGURACAO DE USUARIO ***");
-                
-                // Bloquear na escuta do canal
-                OuvirCanal(in);
-            } else {
-                tela.adicionarMensagemAoChat("[SISTEMA] Conexão falhou.");
-                
-                // Breve sleep para esperar um pouco antes de tentar conectar novamente                
-                try { 
-                    Thread.sleep(1000); 
-                } 
-                catch (Exception e) 
-                { 
-                    System.out.println("ERRO (Sleep): " + e.getMessage()); 
-                }
-            }
+        // Tentar conexão
+        System.out.println("* Conectando...");
+        tela.adicionarMensagemAoChat("* Conectando...");
+        
+        try {
+            socketCliente.conectarAoServidor(servidorIP, nomeUsuario);
+            conectou = true;
+        } catch (Exception e) {
+            System.out.println("ERRO (iniciarConexao): " + e.getMessage());
         }
         
-        tela.adicionarMensagemAoChat("[SISTEMA] Não foi possível conectar-se ao servidor.");
-        System.out.println("ALERTA: Não foi possível conectar-se ao servidor " + servidorIP);
+        if (conectou) {
+            in = socketCliente.retornarCanalDeEntrada();
+            out = socketCliente.retornarCanalDeSaida();
+            
+            System.out.println("Conectou-se e instanciou os canais de dados");
+            
+            // Bloquear na escuta do canal
+            for (int i = 0; i < 5; i++) {
+                ouvirCanal();
+                System.out.println("Escuta do canal de entrada perdida.");
+            }
+            
+            System.out.println("ALERTA: Falhou em ouvir canal de entrada do socket (Provavelmente foi fechado)");
+            tela.adicionarMensagemAoChat("* Conexão interrompida.");
+        } else {
+            tela.adicionarMensagemAoChat("* Não foi possível conectar-se ao servidor.");
+            System.out.println("ALERTA: Não foi possível conectar-se ao servidor " + servidorIP);
+        }
+        
+        // Se não há mais conexão:
+        tela.atualizarUsuariosOnline("");
+        tela.trataSocket = null;
     }
     
-    private void OuvirCanal(BufferedReader recebidor) {
+    private void ouvirCanal() {
         try {
             while (true) {
-                String msg = recebidor.readLine();
-                System.out.println(msg);
-                tela.adicionarMensagemAoChat(msg);
+                interpretarMensagem((Mensagem)in.readObject());
             }
         } catch (Exception e) {
-            System.out.println("ERRO LEITOR: " + e.getMessage());
+            System.out.println("ERRO (ouvirCanal): " + e.getMessage());
         }
     }
     
-    public void EscreverCanal(String mensagem) {
+    private void interpretarMensagem(Mensagem msg) {
+        System.out.println("Interpretando mensagem");
+        
+        switch (msg.getTipo()) {
+            case "Mensagem":
+                System.out.println("Mensagem padrão identificada");
+                String mensagem = msg.retornarMensagemFormatada();
+                System.out.println(mensagem);
+                tela.adicionarMensagemAoChat(mensagem);
+                break;
+            case "AtualizarOnline":
+                System.out.println("Notificação de conexão identificada");
+                tela.atualizarUsuariosOnline(msg.getConteudo());
+                break;
+            case "Arquivo":
+                System.out.println("Alerta de envio de arquivo identificado");
+                break;
+            default:
+                System.out.println("ERRO: Tipo de mensagem não identificada.");
+                break;
+        }
+    }
+    
+    public void escreverCanal(String tipo, String conteudo) {
+        if (tipo == "Mensagem") conteudo = nomeUsuario + ": " + conteudo;
+        
         try {
-            out.println(mensagem);
+            out.writeObject(new Mensagem(tipo, conteudo));
             out.flush();
         } catch(Exception e) {
             System.out.println("ERRO (EscreverCanal): " + e.getMessage());
+        }
+    }
+    
+    public void encerrarConexao() {
+        try {
+            socketCliente.encerrarConexao();
+        } catch(Exception e) {
+            System.out.println("ERRO (encerrarConexao): " + e.getMessage());
         }
     }
 }

@@ -5,6 +5,9 @@
  */
 package view;
 
+import java.awt.Color;
+import javax.swing.ListModel;
+import model.Mensagem;
 import rede.SocketServidor;
 
 /**
@@ -12,14 +15,13 @@ import rede.SocketServidor;
  * @author vitor
  */
 public class TelaServidor extends javax.swing.JFrame {
-
+    TrataSocketServidor trataSocketServidor;
+    
     /**
      * Creates new form TelaServidor
      */
     public TelaServidor() {
         initComponents();
-        
-        abrirServidor();
     }
 
     /**
@@ -31,21 +33,186 @@ public class TelaServidor extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        pnConexao = new javax.swing.JPanel();
+        btConexaoIniciar = new javax.swing.JButton();
+        lbEstadoLabel = new javax.swing.JLabel();
+        lbEstadoValor = new javax.swing.JLabel();
+        btConexaoEncerrar = new javax.swing.JButton();
+        lbPorta = new javax.swing.JLabel();
+        pnOnline = new javax.swing.JPanel();
+        lbOnlineTitulo = new javax.swing.JLabel();
+        spOnlinePainel = new javax.swing.JScrollPane();
+        lsOnlineLista = new javax.swing.JList<>();
+        tfInputMensagem = new javax.swing.JTextField();
+        spChat = new javax.swing.JScrollPane();
+        lsChat = new javax.swing.JList<>();
+        lbVersao = new javax.swing.JLabel();
+        btInputEnviar = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Environmental Awareness (Servidor)");
+        setPreferredSize(new java.awt.Dimension(700, 520));
+
+        pnConexao.setBackground(new java.awt.Color(255, 255, 255));
+        pnConexao.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+
+        btConexaoIniciar.setText("Iniciar Servidor");
+        btConexaoIniciar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btConexaoIniciarActionPerformed(evt);
+            }
+        });
+
+        lbEstadoLabel.setText("Estado do servidor:");
+
+        lbEstadoValor.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        lbEstadoValor.setForeground(new java.awt.Color(255, 0, 0));
+        lbEstadoValor.setText("OFFLINE");
+
+        btConexaoEncerrar.setText("Encerrar Servidor");
+        btConexaoEncerrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btConexaoEncerrarActionPerformed(evt);
+            }
+        });
+
+        lbPorta.setText("Porta: 20100");
+
+        javax.swing.GroupLayout pnConexaoLayout = new javax.swing.GroupLayout(pnConexao);
+        pnConexao.setLayout(pnConexaoLayout);
+        pnConexaoLayout.setHorizontalGroup(
+            pnConexaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnConexaoLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lbEstadoLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lbEstadoValor)
+                .addGap(36, 36, 36)
+                .addComponent(btConexaoIniciar)
+                .addGap(18, 18, 18)
+                .addComponent(btConexaoEncerrar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(lbPorta)
+                .addContainerGap())
+        );
+        pnConexaoLayout.setVerticalGroup(
+            pnConexaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnConexaoLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(pnConexaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btConexaoIniciar)
+                    .addComponent(lbEstadoLabel)
+                    .addComponent(lbEstadoValor)
+                    .addComponent(btConexaoEncerrar)
+                    .addComponent(lbPorta))
+                .addContainerGap())
+        );
+
+        pnOnline.setBackground(new java.awt.Color(153, 153, 153));
+        pnOnline.setFont(new java.awt.Font("Times New Roman", 0, 12)); // NOI18N
+
+        lbOnlineTitulo.setBackground(new java.awt.Color(204, 204, 204));
+        lbOnlineTitulo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lbOnlineTitulo.setText("ONLINE:");
+        lbOnlineTitulo.setOpaque(true);
+
+        spOnlinePainel.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+
+        lsOnlineLista.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        spOnlinePainel.setViewportView(lsOnlineLista);
+
+        javax.swing.GroupLayout pnOnlineLayout = new javax.swing.GroupLayout(pnOnline);
+        pnOnline.setLayout(pnOnlineLayout);
+        pnOnlineLayout.setHorizontalGroup(
+            pnOnlineLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnOnlineLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnOnlineLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(spOnlinePainel, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(lbOnlineTitulo, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        pnOnlineLayout.setVerticalGroup(
+            pnOnlineLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnOnlineLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lbOnlineTitulo)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spOnlinePainel, javax.swing.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tfInputMensagem.setToolTipText("");
+
+        spChat.setAutoscrolls(true);
+        spChat.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+
+        lsChat.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        spChat.setViewportView(lsChat);
+
+        lbVersao.setText("v0.3.1");
+
+        btInputEnviar.setText("Enviar");
+        btInputEnviar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btInputEnviarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnConexao, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(spChat, javax.swing.GroupLayout.PREFERRED_SIZE, 527, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(tfInputMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, 430, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(3, 3, 3)
+                                .addComponent(btInputEnviar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGap(18, 18, 18)
+                        .addComponent(pnOnline, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lbVersao)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(pnConexao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(spChat)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(tfInputMensagem)
+                            .addComponent(btInputEnviar, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)))
+                    .addComponent(pnOnline, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(lbVersao))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btInputEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btInputEnviarActionPerformed
+        enviarMensagem(tfInputMensagem.getText());
+    }//GEN-LAST:event_btInputEnviarActionPerformed
+
+    private void btConexaoIniciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConexaoIniciarActionPerformed
+        abrirServidor();
+    }//GEN-LAST:event_btConexaoIniciarActionPerformed
+
+    private void btConexaoEncerrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConexaoEncerrarActionPerformed
+        encerrarServidor();
+    }//GEN-LAST:event_btConexaoEncerrarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -83,24 +250,135 @@ public class TelaServidor extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btConexaoEncerrar;
+    private javax.swing.JButton btConexaoIniciar;
+    private javax.swing.JButton btInputEnviar;
+    private javax.swing.JLabel lbEstadoLabel;
+    private javax.swing.JLabel lbEstadoValor;
+    private javax.swing.JLabel lbOnlineTitulo;
+    private javax.swing.JLabel lbPorta;
+    private javax.swing.JLabel lbVersao;
+    private javax.swing.JList<String> lsChat;
+    private javax.swing.JList<String> lsOnlineLista;
+    private javax.swing.JPanel pnConexao;
+    private javax.swing.JPanel pnOnline;
+    private javax.swing.JScrollPane spChat;
+    private javax.swing.JScrollPane spOnlinePainel;
+    private javax.swing.JTextField tfInputMensagem;
     // End of variables declaration//GEN-END:variables
 
     // Começo métodos customizados:
     // Parte visual
+    void adicionarMensagemAoChat(String mensagem) {
+        // Gerar versão atualizada da lista
+        ListModel lm = lsChat.getModel();
+        String[] novaLista;
+        
+        // Recupera mensagens da lista antiga (o máximo possível)
+        if (lm.getSize() >= 30) {
+            novaLista = new String[lm.getSize()];        
+        
+            for (int i = 1; i < lm.getSize(); i++) {
+                novaLista[i-1] = lm.getElementAt(i).toString();
+            }
+        } else {
+            novaLista = new String[lm.getSize() + 1];        
+        
+            for (int i = 0; i < lm.getSize(); i++) {
+                novaLista[i] = lm.getElementAt(i).toString();
+            }
+        }
+        
+        // Adicionar nova mensagem
+        novaLista[novaLista.length - 1] = mensagem;  
+        
+        lsChat.setListData(novaLista);
+    }
     
+    void atualizarUsuariosOnline(String nomes) {
+        String[] nomesSeparados = nomes.split(",");        
+        lsOnlineLista.setListData(nomesSeparados);
+    }
+    
+    public void interpretarMensagem(Mensagem msg) {
+        System.out.println("Interpretando mensagem");
+        
+        switch (msg.getTipo()) {
+            case "Mensagem":
+                System.out.println("Mensagem padrão identificada");
+                String mensagem = msg.retornarMensagemFormatada();
+                System.out.println(mensagem);
+                adicionarMensagemAoChat(mensagem);
+                break;
+            case "AtualizarOnline":
+                System.out.println("Notificação de conexão identificada");
+                atualizarUsuariosOnline(msg.getConteudo());
+                break;
+            case "Arquivo":
+                System.out.println("Alerta de envio de arquivo identificado");
+                break;
+            default:
+                System.out.println("ERRO: Tipo de mensagem não identificada.");
+                break;
+        }
+    }
+    
+    private void enviarMensagem(String msg) {
+        if (trataSocketServidor == null) return;
+        
+        trataSocketServidor.enviarMensagem(new Mensagem("Mensagem", "(SERVIDOR): " + msg));
+    }
     
     
     // Conexão de rede
     private void abrirServidor() {
-        SocketServidor socketServidor = new SocketServidor();
+        if (trataSocketServidor != null) return;
+        
+        trataSocketServidor = new TrataSocketServidor(this);
+        trataSocketServidor.start();
+        
+        lbEstadoValor.setText("ONLINE");
+        lbEstadoValor.setForeground(Color.GREEN);
+    }
+    
+    private void encerrarServidor() {
+        if (trataSocketServidor == null) return;
+        
+        trataSocketServidor.encerrarServidor();
+        trataSocketServidor = null;
+        
+        lbEstadoValor.setText("OFFLINE");
+        lbEstadoValor.setForeground(Color.RED);
+        
+        atualizarUsuariosOnline("");
+    }
+    
+}
+
+class TrataSocketServidor extends Thread{
+    SocketServidor socketServidor;
+    TelaServidor tela;
+    
+    public TrataSocketServidor(TelaServidor tela) {
+        this.tela = tela;
+    }
+    
+    public void run() {
+        socketServidor = new SocketServidor();
         
         try {
-            socketServidor.iniciarServidor();
+            socketServidor.iniciarServidor(tela);
         } catch (Exception e) {
             System.out.println("ERRO SERVIDOR: " + e.getMessage());
         }
-        
-        System.out.println("*** ATENÇÃO: SERVER EM ESTADO BÁSICO DE FUNCIONAMENTO. NECESSÁRIO FINALIZAR IMPLEMENTAÇÃO. ***");
     }
     
+    public void enviarMensagem(Mensagem msg) {
+        socketServidor.enviarMensagem(msg);
+    }
+    
+    public void encerrarServidor() {
+        socketServidor.encerrarServidor();
+        System.out.println("Servidor encerrado com sucesso.");
+    }
 }

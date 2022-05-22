@@ -1,31 +1,36 @@
 package rede;
 
+import model.Mensagem;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import view.TelaServidor;
 
 public class SocketServidor {
     private int porta = 20100;
     static List<ThreadCliente> threadsClientes;
-    
     private ServerSocket socketServidor;
     
-    public void iniciarServidor() throws Exception {
+    public static TelaServidor tela;
+    
+    public void iniciarServidor(TelaServidor tela) throws Exception {
         threadsClientes = new ArrayList();
         
         System.out.println("Criando servidor...");
         socketServidor = new ServerSocket(porta);
-            
+        
         System.out.println("Servidor criado, iniciando seu escritor");
-        EscritorDeSoqueteServer escritor = new EscritorDeSoqueteServer();            
-        Thread threadEscritor = new Thread(escritor);
+        EscritorDeSocketServidor escritor = new EscritorDeSocketServidor();
+        Thread threadEscritor = new Thread(escritor);        
         threadEscritor.start();
-            
+        
+        this.tela = tela;
         while (true) {
             System.out.println("Escutando porta " + porta + " esperando clientes.");
             ThreadCliente threadCliente = new ThreadCliente(socketServidor.accept());
@@ -39,13 +44,66 @@ public class SocketServidor {
                 
             threadsClientes.add(threadCliente);
             threadCliente.start();
-                
-            //System.out.println("Cliente conectou-se.");
         }
-               
+        
+    }
+    
+    public void enviarMensagem(Mensagem msg) {
+        msg.setHora(LocalTime.now());
+        
+        try {
+            EscritorDeSocketServidor.emitirMensagem(msg);
+        } catch (Exception e) {
+            System.out.println("ERRO (enviarMensagem SocketServidor): " + e.getMessage());
+        }
+        
+    }
+    
+    static String retornarNomeDosClientes() {
+        String msg = "";
+        int quantiaUsuarios = threadsClientes.size();
+        
+        if (quantiaUsuarios > 1) {
+            for (int i = 0; i < quantiaUsuarios - 1; i++) {
+                msg += threadsClientes.get(i).nome + ",";
+            }
+        }
+        
+        if (quantiaUsuarios > 0) msg += threadsClientes.get(quantiaUsuarios - 1).nome;
+        
+        return msg;
+    }
+    
+    static void removerCliente(ThreadCliente tc, boolean emitirMensagem) {
+        int quantiaUsuarios = threadsClientes.size();
+        
+        System.out.println("Usuarios registrados: " + quantiaUsuarios + " -> " + (quantiaUsuarios - 1));
+        threadsClientes.remove(tc);
+        
+        if (!emitirMensagem) return;
+        
+        try {
+            EscritorDeSocketServidor.emitirMensagem(new Mensagem("AtualizarOnline", retornarNomeDosClientes()));
+            EscritorDeSocketServidor.emitirMensagem(new Mensagem("Mensagem", tc.nome + " desconectou-se"));
+        } catch (Exception e) {
+            System.out.println("ERRO (removerCliente): " + e.getMessage());
+        }
     }
     
     public void encerrarServidor() {
+        /*
+        for (ThreadCliente tc : threadsClientes) {
+            tc.encerrarConexao(false); // Está dando exceção de Modificação concorrente do arraylist threadClientes para emitir mensagem (ignorar emissão então)
+        }
+        */
+        
+        // Força bruta
+        while (threadsClientes.size() > 0) {
+            for (int i = 0; i < threadsClientes.size(); i++) {
+                threadsClientes.get(i).encerrarConexao(false);
+            } 
+        }
+        
         try {
             socketServidor.close();
         } catch (Exception e) {
@@ -55,21 +113,22 @@ public class SocketServidor {
 }
 
 class ThreadCliente extends Thread{
-    public String nome = "Unnamed";
+    public String nome = "<Sem nome>";
     Socket socket;
-    BufferedReader in; // Leitor de input recebido do socket, instanciado de um canal de entrada que é instanciado baseado no canal de fluxo de entrada de dados do soquete.
-    PrintWriter out; // Emissor de output enviado para o socket, instanciado de um canal de saída que é instanciado baseado no canal de fluxo de saída de dados do soquete.
-    LeitorDeSoqueteCliente leitor;
-    //public EscritorDeSoqueteServer escritor;
+    ObjectInputStream in;
+    ObjectOutputStream out;
+    LeitorDeSocketCliente leitor;
+    boolean encerrandoConexao = false;
     
     public ThreadCliente(Socket socket) {
         this.socket = socket;
         
         try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+            out = new ObjectOutputStream(socket.getOutputStream()); // Out SEMPRE primeiro
+            out.flush();
+            in = new ObjectInputStream(socket.getInputStream());            
         } catch (Exception e) {
-            System.out.println("ERRO CONSTRUTOR CLIENTE: " + e.getMessage());
+            System.out.println("ERRO CONSTRUTOR THREAD: " + e.getMessage());
         }
         
         System.out.println("(Construtor) Thread cliente criada para " + nome);
@@ -77,67 +136,89 @@ class ThreadCliente extends Thread{
     
     public void run() {
         try {
-            this.nome = in.readLine(); // Recebe primeiramente o nome do usuário.
+            this.nome = in.readUTF(); // Recebe primeiramente o nome do usuário.
+            Mensagem msg;
+            // Avisa conexão para arrumar a aba online
+            msg = new Mensagem("AtualizarOnline", SocketServidor.retornarNomeDosClientes());
+            EscritorDeSocketServidor.emitirMensagem(msg); 
             
             System.out.println("Cliente (" + nome + ") configurado com sucesso\n" + nome + " conectou-se");
-            EscritorDeSoqueteServer.emitirMensagem(nome + " conectou-se");
+            
+            // Envia mensagem alertando conexão
+            msg = new Mensagem("Mensagem", nome + " conectou-se", LocalTime.now()); // Nunca esqueça de preencher os 3 valores antes do cliente receber!
+            EscritorDeSocketServidor.emitirMensagem(msg); 
+            
         } catch (Exception e) {
             System.out.println("ERRO THREAD CLIENTE: " + e.getMessage());
+        
         }
         
-        leitor = new LeitorDeSoqueteCliente(this, in);
-        //escritor = new EscritorDeSoqueteServer(out);
-        
-        //Thread leitorThread = new Thread(leitor);
-        //leitorThread.start();
+        leitor = new LeitorDeSocketCliente(this, in);
         leitor.run();
+    }
+    
+    public void encerrarConexao() {
+        this.encerrarConexao(true);
+    }
+    
+    public void encerrarConexao(boolean emitirMensagem) {
+        if (encerrandoConexao) return;
+        encerrandoConexao = true;
         
-        //escritor.start();
+        try {
+            System.out.println("(1/3) Fechando out");
+            out.close();
+            System.out.println("(2/3) Fechando in");
+            in.close();
+            System.out.println("(3/3) Fechando socket");
+            socket.close(); 
+        } catch (Exception e) {
+            System.out.println("ERRO (encerrarConexao do threadCliente): " + e.getMessage());
+        }
+        
+        SocketServidor.removerCliente(this, emitirMensagem);
     }
 }
 
-class LeitorDeSoqueteCliente {
+class LeitorDeSocketCliente extends Thread{
     ThreadCliente tc;
-    BufferedReader recebidor;
+    ObjectInputStream in;
     
-    public LeitorDeSoqueteCliente(ThreadCliente tc, BufferedReader recebidor) {
+    public LeitorDeSocketCliente(ThreadCliente tc, ObjectInputStream in) {
         this.tc = tc;
-        this.recebidor = recebidor;
+        this.in = in;
     }
     
     public void run() {
         try {
             while (true) {
-                String msg = tc.nome + ": " + recebidor.readLine();
-                System.out.println(msg);
+                Mensagem msg = (Mensagem)in.readObject();   
+                LocalTime horaAtual = LocalTime.now();
+                msg.setHora(horaAtual);
                 
-                EscritorDeSoqueteServer.emitirMensagem(msg);
+                System.out.println(msg.retornarMensagemFormatada());                
+                EscritorDeSocketServidor.emitirMensagem(msg);
             }
         } catch (Exception e) {
             System.out.println("ERRO LEITOR: " + e.getMessage());
+            System.out.println("Retirando thread devido ao erro.");
+            tc.encerrarConexao();
         }
     }
 }
 
-class EscritorDeSoqueteServer extends Thread {
-    /*
-    PrintWriter emissor;
-    
-    public EscritorDeSoqueteServer (PrintWriter emissor) {
-        this.emissor = emissor;
-    }
-    */
-    
+class EscritorDeSocketServidor extends Thread {    
     public void run() {
         try {
-            String msg;
-            BufferedReader in = new BufferedReader(new InputStreamReader(System.in)); // Obter dados do usuário para enviar
+            Mensagem msg;
+            BufferedReader inUsuario = new BufferedReader(new InputStreamReader(System.in)); // Obter dados do usuário para enviar
             
             while (true) {
                 System.out.println("Digite sua mensagem:");
-                msg = "(SERVIDOR): " + in.readLine();
-                System.out.println(msg);
+                msg = new Mensagem("Mensagem", "(SERVIDOR): " + inUsuario.readLine());
+                msg.setHora(LocalTime.now());
                 
+                //System.out.println(msg.retornarMensagemFormatada());                
                 emitirMensagem(msg);
             }
         } catch (Exception e) {
@@ -145,11 +226,15 @@ class EscritorDeSoqueteServer extends Thread {
         }
     }
     
-    public static void emitirMensagem(String msg) throws Exception {
-        for (ThreadCliente tc : SocketServidor.threadsClientes) {
-            PrintWriter emissor = new PrintWriter(new OutputStreamWriter(tc.socket.getOutputStream()));
-            emissor.println(msg);
-            emissor.flush();
-        }       
+    public static void emitirMensagem(Mensagem msg) throws Exception {  
+        if (SocketServidor.threadsClientes.size() > 0) {
+            for (ThreadCliente tc : SocketServidor.threadsClientes) {
+                ObjectOutputStream out = tc.out;
+                out.writeObject(msg);
+                out.flush();
+            }
+        }
+        
+        SocketServidor.tela.interpretarMensagem(msg);
     }
 }
